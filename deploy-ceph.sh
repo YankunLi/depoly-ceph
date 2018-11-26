@@ -5,10 +5,10 @@ set -x
 usage ()
 {
 cat <<EOF
-Usage $0 : server command {options}
+Usage :  $0 {options}
 Options:
-    -d device to storage ceph osd data
-    -s service to operate : osd, mon, mds
+    -r/--resource <resource>   resource is repo,mon,mds,osd etc;
+    -c/--command  <command>    what will do about resource
 EOF
 }
 
