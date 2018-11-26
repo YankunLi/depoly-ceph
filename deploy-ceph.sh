@@ -2,8 +2,9 @@
 
 set -x
 
-function usage() {
-cat <<EOF 
+usage ()
+{
+cat <<EOF
 Usage $0 : server command {options}
 Options:
     -d device to storage ceph osd data
@@ -16,7 +17,7 @@ color_print() {
 }
 
 warn() {
-    color_print "$1" >&2 
+    color_print "$1" >&2
 }
 
 die() {
@@ -24,16 +25,25 @@ die() {
     exit 1
 }
 
-function install_osd() {}
-function install_monitor() {}
-function install_mds() {}
+install_osd()
+{
+echo "TODO"
+}
 
+install_monitor() {
+echo "TODO"
+}
 
-function install_ceph() {
+install_mds() {
+echo "TODO"
+}
+
+install_ceph() {
+echo "TODO"
 
 }
 
-function init_osd() {
+init_osd() {
     for i in `seq 4 9`
     do
     #    osd_id=`expr $i + 8`
@@ -48,7 +58,7 @@ function init_osd() {
             ceph auth add osd.$osd_id osd 'allow *' mon 'allow profile osd' -i $data/keyring
         fi
     #    chown ceph:ceph -R $data
-    cat << EOF >> /etc/ceph/ceph.conf
+    cat >> /etc/ceph/ceph.conf << EOF
 [osd.$osd_id]
 host=`hostname`
 osd_data=/data0$i/ceph/osd/ceph-$osd_id
@@ -58,8 +68,8 @@ EOF
     done
 }
 
-function import_rep() {
-cat << EOF > /etc/yum.repos.d/ceph.repo
+import_repo() {
+cat > /etc/yum.repos.d/ceph.repo << EOF
 [self-ceph-repo]
 name=Extra Packages for Enterprise Linux $releasever - $basearch
 baseurl= http://10.148.4.68:8000/centos/7/x86_64/ceph
@@ -69,9 +79,51 @@ gpgcheck=0
 EOF
 }
 
-function start_osd() {
+start_osd() {
+  #  systemctl start ceph-osd@$osd_id
 /usr/bin/ceph-osd -f --cluster ceph --id $osd_id --setuser work --setgroup work &
 
 }
 
-  #  systemctl start ceph-osd@$osd_id
+eval set -- "$(getopt -o r:c: --long resource:,command: -- $@)"
+
+while true
+do
+    case "$1" in
+        -r|--resource)
+            RESOURCE=$2
+            shift 2;
+            ;;
+        -c|--command)
+            COMMAND=$2
+            shift 2;
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+case $RESOURCE in
+    repo)
+        case $COMMAND in
+            import)
+                import_repo
+                ;;
+            *)
+                usage
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+
+esac
