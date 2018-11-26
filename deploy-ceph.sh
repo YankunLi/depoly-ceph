@@ -25,22 +25,28 @@ die() {
     exit 1
 }
 
-install_osd()
-{
-echo "TODO"
-}
+PKG_CEPH_VERSION=""
+PKG_CEPH_MON="ceph-mon"
+PKG_CEPH_OSD="ceph-osd"
+PKG_CEPH_MDS="ceph-mds libcephfs1 python-cephfs ceph-fuse"
+PKG_CEPH_ALL="$PKG_CEPH_MDS $PKG_CEPH_MON $PKG_CEPH_OSD"
 
-install_monitor() {
-echo "TODO"
-}
 
-install_mds() {
-echo "TODO"
-}
-
-install_ceph() {
-echo "TODO"
-
+install_ceph_packages() {
+    case $1 in
+        mon)
+            yum install $PKG_CEPH_MON -y
+            ;;
+        osd)
+            yum install $PKG_CEPH_OSD -y
+            ;;
+        mds)
+            yum install $PKG_CEPH_MDS -y
+            ;;
+        ceph)
+            yum install $PKG_CEPH_ALL -y
+            ;;
+    esac
 }
 
 init_osd() {
@@ -121,9 +127,19 @@ case $RESOURCE in
                 ;;
         esac
         ;;
+    mon|osd|mds|ceph)
+        case $COMMAND in
+            install)
+                install_ceph_packages $RESOURCE
+                ;;
+            *)
+                usage
+                exit 1
+                ;;
+        esac
+        ;;
     *)
         usage
         exit 1
         ;;
-
 esac
