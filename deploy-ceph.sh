@@ -17,11 +17,11 @@ color_print() {
 }
 
 warn() {
-    color_print "$1" >&2
+    color_print "WARNNING: $1" >&2
 }
 
 die() {
-    warn "$1"
+    warn "ERROR: $1"
     exit 1
 }
 
@@ -45,6 +45,19 @@ install_ceph_packages() {
             ;;
         ceph)
             yum install $PKG_CEPH_ALL -y
+            ;;
+    esac
+}
+
+init_resource() {
+    case $1 in
+        mon)
+            init_mon
+            ;;
+        osd)
+            init_osd
+            ;;
+        *)
             ;;
     esac
 }
@@ -80,28 +93,39 @@ init_mon() {
     //start monitor service
 }
 
+
+
 init_osd() {
-    for i in `seq 4 9`
+    if [ ! -e ./devices-file ]; then
+        die "Cann't found devices-file"
+    fi
+    source ./devices-file  #define variable LOCAL_DEVICES
+    for dev in $LOCAL_DEVICES
     do
-    #    osd_id=`expr $i + 8`
+        if [ -e /$dev/ceph/osd ]; then
+            warn "$dev has been initialed for osd"
+            continue
+        fi
         osd_id=`ceph osd create`
-        data=/data0$i/ceph/osd/ceph-$osd_id
+        data=/$dev/ceph/osd/ceph-$osd_id
         mkdir $data -p
+        # config osd
+    cat >> /etc/ceph/ceph.conf << EOF
+
+[osd.$osd_id]
+host=`hostname`
+osd_data=/$dev/ceph/osd/ceph-$osd_id
+osd_journal_size=10240
+osd_journal=/$dev/ceph/osd/ceph-$osd_id/journal
+EOF
         ceph-osd -i $osd_id --mkfs --mkjournal --mkkey --osd-uuid `uuidgen` --cluster ceph --osd-data=$data --osd-journal=$data/journal
         if [ $? -ne 0 ]; then
-            echo "osd.$osd_id deploy failed"
+            warn "osd.$osd_id deploy failed"
             continue
         else
             ceph auth add osd.$osd_id osd 'allow *' mon 'allow profile osd' -i $data/keyring
         fi
-    #    chown ceph:ceph -R $data
-    cat >> /etc/ceph/ceph.conf << EOF
-[osd.$osd_id]
-host=`hostname`
-osd_data=/data0$i/ceph/osd/ceph-$osd_id
-osd_journal_size=10240
-osd_journal=/data0$i/ceph/osd/ceph-$osd_id/journal
-EOF
+        chown ceph:ceph -R /$dev/ceph
     done
 }
 
