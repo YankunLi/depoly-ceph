@@ -1,0 +1,12 @@
+#!/bin/bash
+#global configuration
+CEPH_FSID="" #e612c7e5-812b-4e8a-8f89-78f3db3771e1
+CEPH_MON_MEMBERS="" #server-1,server-2,server-3
+CEPH_MON_HOST="" #192.168.1.2,192.168.1.3,192.168.1.5
+CEPH_PUBLIC_NET="" #192.168.1.0/24
+CEPH_CLUSTER_NET="" #192.168.1.0/24
+
+#monitor configuration
+CEPH_MON_NAME="$(hostname -s)" #server-1
+CEPH_HOSTNAME="$(hostname)" #`hostname -s`
+CEPH_MON_IP="" #192.168.1.2

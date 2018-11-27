@@ -1,0 +1,30 @@
+#!/bin/bash
+
+generate_conf(){
+    cat > /etc/ceph/ceph.conf <<EOF
+[global]
+fsid=$CEPH_FSID
+mon_initial_members = $CEPH_MON_MEMBERS
+mon_host = $CEPH_MON_HOSTS
+public_network = $CEPH_PUBLIC_NET/24
+cluster_network = $CEPH_CLUSTER_NET/24
+auth_cluster_required = cephx
+auth_service_required = cephx
+auth_client_required = cephx
+osd_journal_size = 10240
+osd_pool_default_size = 3
+osd_pool_default_min = 2
+osd_pool_default_pg_num = 64
+osd_pool_default_pgp_num = 64
+osd_crush_chooseleaf_type = 1
+debug_mon=20/20
+
+[mon.$CEPH_MON_NAME]
+host=$CEPH_HOSTNAME
+mon_addr=$CEPH_MON_IP
+mon_data=/var/lib/ceph/mon/ceph-$CEPH_MON_NAME
+mon_force_standby_active=true
+admin_socket=/var/run/ceph/ceph-$CEPH_MON_NAME.asock
+EOF
+    echo "Bye Bye"
+}

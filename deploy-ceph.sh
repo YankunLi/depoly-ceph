@@ -49,6 +49,10 @@ install_ceph_packages() {
     esac
 }
 
+init_mon() {
+    //create keyring 
+}
+
 init_osd() {
     for i in `seq 4 9`
     do
@@ -131,6 +135,9 @@ case $RESOURCE in
         case $COMMAND in
             install)
                 install_ceph_packages $RESOURCE
+                ;;
+            init)
+                init_resource $RESOURCE
                 ;;
             *)
                 usage
