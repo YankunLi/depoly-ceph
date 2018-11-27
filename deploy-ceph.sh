@@ -50,7 +50,34 @@ install_ceph_packages() {
 }
 
 init_mon() {
-    //create keyring 
+    //improt global config
+    //todo
+
+    if [ CEPH_ALREADY_INIT_FIRST_MON -eq "0" ]; then
+        ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+        if [ $? -ne 0 ]; then
+            die "ERROR: Creating keyring is failed for mon."
+        fi
+        ceph-authtool --create-keyring /tmp/ceph.client.admin.keyring --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+        if [ $? -ne 0 ]; then
+            die "ERROR: Creating keyring is failed for client.admin"
+        fi
+        ceph-authtool --create-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd'
+        if [ $? -ne 0 ]; then
+            die "ERROR: Creating keyring is failed for client.bootstrap-osd"
+        fi
+        ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
+        ceph-authtool /tmp/ceph.mon.keyring --import-keyring /var/lib/ceph/bootstrap-osd/ceph.keyring
+        monmaptool --create --add `hostname -s` ip --fsid $CEPH_FSID /tmp/monmap
+    else
+        ceph auth get mon. -o /tmp/ceph.mon.keyring && ceph mon getmap -o /tmp/monmap
+        //todo
+    fi
+    sudo -u ceph mkdir /var/lib/ceph/mon/ceph-$(hostname -s)
+    sudo -u ceph ceph-mon --mkfs -i `hostname -s` --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+
+    //import monitor config
+    //start monitor service
 }
 
 init_osd() {

@@ -10,3 +10,7 @@ CEPH_CLUSTER_NET="" #192.168.1.0/24
 CEPH_MON_NAME="$(hostname -s)" #server-1
 CEPH_HOSTNAME="$(hostname)" #`hostname -s`
 CEPH_MON_IP="" #192.168.1.2
+
+
+#store status for monitor
+CEPH_ALREADY_INIT_FIRST=0
