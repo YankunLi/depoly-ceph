@@ -140,10 +140,25 @@ gpgcheck=0
 EOF
 }
 
-start_osd() {
+start_osds() {
   #  systemctl start ceph-osd@$osd_id
-/usr/bin/ceph-osd -f --cluster ceph --id $osd_id --setuser work --setgroup work &
+    osds=$(ceph-conf --cluster=$(cluster:-ceph) -l osd)
+    for osd in $osds;
+    do
+        id=${osd##*.}
+        color_print "INFO: Start $osd"
+        systemctl start ceph-osd@$id
+    done
+}
 
+start_resource() {
+    case $1 in
+        osd)
+            start_osds
+            ;;
+        *)
+            ;;
+    esac
 }
 
 eval set -- "$(getopt -o r:c: --long resource:,command: -- $@)"
@@ -189,6 +204,9 @@ case $RESOURCE in
                 ;;
             init)
                 init_resource $RESOURCE
+                ;;
+            start)
+                start_resource $RESOURCE
                 ;;
             *)
                 usage
