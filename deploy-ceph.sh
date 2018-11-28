@@ -57,9 +57,30 @@ init_resource() {
         osd)
             init_osd
             ;;
+        mds)
+            init_mds
+            ;;
         *)
             ;;
     esac
+}
+
+init_mds() {
+    if [ -e /var/lib/ceph/mds/ceph-`hostname -s` ]; then
+        warn "MDS service is already existed"
+        exit 1
+    fi
+    mkdir /var/lib/ceph/mds/ceph-`hostname -s`
+    ceph auth get-or-create mds.`hostname -s` mon 'allow profile mds' mds 'allow *' osd 'allow *' > /var/lib/ceph/mds/ceph-`hostname -s`/keyring
+    if [ $? -eq 0 ]; then
+        chown ceph:ceph /var/lib/ceph/mds/ceph-`hostname -s` -R
+    else
+        die "Cann't Create or get keyring for mds `hostname -s`"
+    fi
+        cat >> /etc/ceph/ceph.conf << EOF
+[mds.`hostname -s`]
+host=`hostname`
+EOF
 }
 
 init_mon() {
